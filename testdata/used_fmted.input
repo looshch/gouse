@@ -1,0 +1,12 @@
+package p
+
+func main() {
+	var (
+		notUsed0 = false
+		used0    bool
+		_        = notUsed0 /* TODO: gouse */
+	)
+	notUsed1, used1 := "", ""
+	_, _ = used0, used1
+	_ = notUsed1 /* TODO: gouse */
+}

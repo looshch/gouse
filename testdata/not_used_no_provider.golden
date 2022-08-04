@@ -1,0 +1,12 @@
+package p
+
+import "github.com/gorilla/mux" // Any non-existent dependency works.
+
+func main() {
+	var (
+		notUsed0 = false; _ = notUsed0 /* TODO: gouse */
+		used0    bool
+	)
+	notUsed1, used1 := "", ""; _ = notUsed1 /* TODO: gouse */
+	_, _ = used0, used1
+}
