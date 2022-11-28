@@ -43,11 +43,11 @@ First it tries to remove fake usages. If there is nothing to remove, it tries
 to build an input and checks a build stdout for the errors. If there is any,
 it creates fake usages for unused variables from the errors.
 
-## Why
-To automate automatable and speed up feedback loop.
+## [Why](https://loosh.ch/blog/gouse)
+TL; DR: to automate automatable and speed up feedback loop.
 
 ## Integrations
-* Vim: just bind `<cmd>!gouse -w %<cr><cr>` to some mapping.
+* Vim: just bind `<cmd> w <bar> !gouse -w %<cr><cr>` to some mapping.
 * [Visual Studio Code plugin](https://github.com/looshch/gouse-vsc).
 ### Help Wanted
 I have zero willingness to touch Java world to implement a wrapper for GoLand.
