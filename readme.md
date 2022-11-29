@@ -1,3 +1,7 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/looshch/gouse.svg)](https://pkg.go.dev/github.com/looshch/gouse)
+[![Go Report Card](https://goreportcard.com/badge/github.com/looshch/gouse)](https://goreportcard.com/report/github.com/looshch/gouse)
+[![codecov](https://codecov.io/gh/looshch/gouse/branch/master/graph/badge.svg?token=7SDOQ68E2E)](https://codecov.io/gh/looshch/gouse)
+
 # gouse
 Toggle ‘declared but not used’ errors in Go by using idiomatic `_ = notUsedVar`
 and leaving a TODO comment. ![a demo gif](demo.gif)
