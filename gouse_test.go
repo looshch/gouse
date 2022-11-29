@@ -15,13 +15,9 @@ const FILES_CMP_ERR = `
 ========= want:
 %s`
 
-// e2e
+// End-to-end test.
 func TestMain(t *testing.T) {
-	td, err := os.MkdirTemp(os.TempDir(), "testenv")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(td)
+	td := t.TempDir()
 	input, err := os.ReadFile(filepath.Join("testdata", "not_used.input"))
 	if err != nil {
 		t.Fatal(err)
@@ -124,20 +120,23 @@ func TestToggle(t *testing.T) {
 			}
 		})
 	}
+	t.Cleanup(func() {})
 }
 
 func TestGetVarsInfoFrom(t *testing.T) {
 	t.Run("ignore other errors", func(t *testing.T) {
 		t.Parallel()
-		input := []byte(`package p
+		input := []byte(
+			`package p
 
-		                 func main() {
-		                 var (
-		                 	notUsed0 = false
-		                 	used0    bool
-		                 )
-		                 notUsed1, used1 := "", "", "" // more values than variables
-		                 _, _ = used0, used1 // no closing brace`)
+		         func main() {
+		         var (
+		         	notUsed0 = false
+		         	used0    bool
+		         )
+		         notUsed1, used1 := "", "", "" // more values than variables
+		         _, _ = used0, used1 // no closing brace`,
+		)
 		want := []VarInfo{
 			{"notUsed0", 5},
 			{"notUsed1", 8},
