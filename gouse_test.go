@@ -15,8 +15,9 @@ const FILES_CMP_ERR = `
 ========= want:
 %s`
 
-// End-to-end test.
+// End-to-end tests.
 func TestMain(t *testing.T) {
+	t.Parallel()
 	td := t.TempDir()
 	input, err := os.ReadFile(filepath.Join("testdata", "not_used.input"))
 	if err != nil {
@@ -35,13 +36,14 @@ func TestMain(t *testing.T) {
 
 	tfPath := tf.Name()
 	tests := []struct {
-		args []string
-		want string
+		args         []string
+		wantFilename string
+		wantOutput   string
 	}{
-		{args: []string{}, want: "not_used.golden"},
-		{args: []string{"-w"}, want: "cannot use -w with standard input\n"},
-		{args: []string{tfPath}, want: "not_used.golden"},
-		{args: []string{"-w", tfPath, tfPath}, want: "used.golden"}, // Double processing of the same file so used.golden without not_ prefix.
+		{args: []string{}, wantFilename: "not_used.golden"},
+		{args: []string{"-w"}, wantOutput: "cannot use -w with standard input\n"},
+		{args: []string{tfPath}, wantFilename: "not_used.golden"},
+		{args: []string{"-w", tfPath, tfPath}, wantFilename: "used.golden"}, // Double processing of the same file so used.golden without not_ prefix.
 	}
 	for _, tt := range tests {
 		args := tt.args
@@ -60,15 +62,18 @@ func TestMain(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			if len(args) > 1 && args[0] == "-w" {
+			isWriteFlagValid := len(args) > 1
+			isWriteFlagUsed := isWriteFlagValid && args[0] == "-w"
+			if isWriteFlagUsed {
 				if err := gouse.Run(); err != nil {
 					t.Fatal(err)
 				}
 				if got, err = os.ReadFile(tfPath); err != nil {
 					t.Fatal(err)
 				}
-			} else {
-				wantOutput := tt.want
+			}
+			if !isWriteFlagUsed {
+				wantOutput := tt.wantOutput
 				if got, err = gouse.CombinedOutput(); err != nil {
 					if len(args) == 1 && args[0] == "-w" {
 						if bytes.Equal(got, []byte(wantOutput)) {
@@ -81,7 +86,7 @@ func TestMain(t *testing.T) {
 					}
 				}
 			}
-			want, e := os.ReadFile(filepath.Join("testdata", tt.want))
+			want, e := os.ReadFile(filepath.Join("testdata", tt.wantFilename))
 			if e != nil {
 				t.Fatal(e)
 			}
