@@ -44,6 +44,7 @@ func TestMain(t *testing.T) {
 		{args: []string{"-w"}, wantOutput: "cannot use -w with standard input\n"},
 		{args: []string{tfPath}, wantFilename: "not_used.golden"},
 		{args: []string{"-w", tfPath, tfPath}, wantFilename: "used.golden"}, // Double processing of the same file so used.golden without not_ prefix.
+		{args: []string{tfPath, tfPath}, wantOutput: "must use -w with multiple paths\n"},
 	}
 	for _, tt := range tests {
 		args := tt.args
@@ -71,18 +72,13 @@ func TestMain(t *testing.T) {
 				if got, err = os.ReadFile(tfPath); err != nil {
 					t.Fatal(err)
 				}
-			}
-			if !isWriteFlagUsed {
+			} else {
 				wantOutput := tt.wantOutput
 				if got, err = gouse.CombinedOutput(); err != nil {
-					if len(args) == 1 && args[0] == "-w" {
-						if bytes.Equal(got, []byte(wantOutput)) {
-							return
-						} else {
-							t.Errorf(FILES_CMP_ERR, got, wantOutput)
-						}
+					if bytes.Equal(got, []byte(wantOutput)) {
+						return
 					} else {
-						t.Fatal(err)
+						t.Errorf(FILES_CMP_ERR, got, wantOutput)
 					}
 				}
 			}

@@ -6,13 +6,13 @@
 //	gouse [-w] [file ...]
 //
 // By default, gouse accepts code from stdin and writes a toggled version to
-// stdout. If any file paths provided, it takes code from them and writes a
-// toggled version to stdout unless ‘-w’ flag is passed — then it will write
-// back to the file paths.
+// stdout. If any file paths provided with ‘-w’ flag, it writes a toggled
+// version back to them, or to stdout if only one path provided without the
+// flag.
 //
-// First it tries to remove fake usages. If there is nothing to remove, it tries
-// to build an input and checks a build stdout for the errors. If there is any,
-// it creates fake usages for unused variables from the errors.
+// First it tries to remove fake usages. If there is nothing to remove, it
+// tries to build an input and checks a build stdout for the errors. If there
+// is any, it creates fake usages for unused variables from the errors.
 //
 // Examples
 //
@@ -62,16 +62,23 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
+	logWithoutDate := func(msg string) {
+		log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+		log.Fatal(msg)
+	}
+
 	paths := flag.Args()
 	if len(paths) == 0 {
 		if *write {
-			log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-			log.Fatal("cannot use -w with standard input")
+			logWithoutDate("cannot use -w with standard input")
 		}
 		if err := handle(os.Stdin, os.Stdout, false); err != nil {
 			log.Fatal(err)
 		}
 		return
+	}
+	if len(paths) > 1 && !*write {
+		logWithoutDate("must use -w with multiple paths")
 	}
 	for _, p := range paths {
 		var in *os.File

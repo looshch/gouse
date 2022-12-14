@@ -3,8 +3,8 @@
 [![codecov](https://codecov.io/gh/looshch/gouse/branch/master/graph/badge.svg?token=7SDOQ68E2E)](https://codecov.io/gh/looshch/gouse)
 
 # gouse
-Toggle ‘declared but not used’ errors in Go by using idiomatic `_ = notUsedVar`
-and leaving a TODO comment. ![a demo gif](demo.gif)
+A missing quickfix for ‘declared but not used’ errors in Go which uses
+idiomatic `_ = notUsedVar` and leaves a TODO comment. ![a demo gif](demo.gif)
 
 ## Installation
 ```
@@ -13,9 +13,9 @@ go install github.com/looshch/gouse@latest
 
 ## Usage
 By default, gouse accepts code from stdin and writes a toggled version to
-stdout. If any file paths provided, it takes code from them and writes a
-toggled version to stdout unless ‘-w’ flag is passed — then it will write
-back to the file paths.
+stdout. If any file paths provided with ‘-w’ flag, it writes a toggled version
+back to them, or to stdout if only one path provided without the flag.
+
 ### Examples
 ```
 $ gouse
