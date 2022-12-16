@@ -62,15 +62,14 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	logWithoutDate := func(msg string) {
+	logFatalWithoutDate := func(msg string) {
 		log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 		log.Fatal(msg)
 	}
-
 	paths := flag.Args()
 	if len(paths) == 0 {
 		if *write {
-			logWithoutDate("cannot use -w with standard input")
+			logFatalWithoutDate("cannot use -w with standard input")
 		}
 		if err := handle(os.Stdin, os.Stdout, false); err != nil {
 			log.Fatal(err)
@@ -78,7 +77,7 @@ func main() {
 		return
 	}
 	if len(paths) > 1 && !*write {
-		logWithoutDate("must use -w with multiple paths")
+		logFatalWithoutDate("must use -w with multiple paths")
 	}
 	for _, p := range paths {
 		var in *os.File
