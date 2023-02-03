@@ -18,24 +18,28 @@
 //
 //	$ gouse
 //	...input...
-//
 //	notUsed = false
-//
 //	...input...
+//
 //	...output...
-//
 //	notUsed = false; _ = notUsed /* TODO: gouse */
-//
 //	...output...
 //
 //	$ gouse main.go
-//	...output...
-//
+//	...
 //	notUsed = false; _ = notUsed /* TODO: gouse */
-//
-//	...output...
+//	...
 //
 //	$ gouse -w main.go io.go core.go
+//	$ cat main.go io.go core.go
+//	...
+//	notUsedFromMain = false; _ = notUsedFromMain /* TODO: gouse */
+//	...
+//	notUsedFromIo = false; _ = notUsedFromIo /* TODO: gouse */
+//	...
+//	notUsedCore = false; _ = notUsedCore /* TODO: gouse */
+//	...
+//
 package main
 
 import (
@@ -105,50 +109,47 @@ func main() {
 func handle(in *os.File, out *os.File, write bool) error {
 	code, err := io.ReadAll(in)
 	if err != nil {
-		return err
+		return fmt.Errorf("handle: in io.ReadAll: %v", err)
 	}
 	toggled, err := toggle(code)
 	if err != nil {
-		return err
+		return fmt.Errorf("handle: %v", err)
 	}
 	if write {
 		if _, err := out.Seek(0, 0); err != nil {
-			return err
+			return fmt.Errorf("handle: in *File.Seek: %v", err)
 		}
 		if err := out.Truncate(0); err != nil {
-			return err
+			return fmt.Errorf("handle: in *File.Truncate: %v", err)
 		}
 	}
 	if _, err := out.Write(toggled); err != nil {
-		return err
+		return fmt.Errorf("handle: in *File.Write: %v", err)
 	}
 	return nil
 }
 
 const (
-	COMMENT_PREFIX = "// "
+	commentPrefix = "// "
 
-	USAGE_PREFIX  = "; _ ="
-	USAGE_POSTFIX = " /* TODO: gouse */"
+	usagePrefix  = "; _ ="
+	usagePostfix = " /* TODO: gouse */"
 )
 
-var commentPrefixPadding = len([]rune(COMMENT_PREFIX))
-
 var (
-	escapedUsagePostfix = regexp.QuoteMeta(USAGE_POSTFIX)
-
-	used           = regexp.MustCompile(USAGE_PREFIX + ".*" + escapedUsagePostfix)
-	usedAndGofmted = regexp.MustCompile(`\s*_\s*= \w*` + escapedUsagePostfix)
+	escapedUsagePostfix = regexp.QuoteMeta(usagePostfix)
+	used                = regexp.MustCompile(usagePrefix + ".*" + escapedUsagePostfix)
+	usedAndGofmted      = regexp.MustCompile(`\s*_\s*= \w*` + escapedUsagePostfix)
 )
 
-// ERROR_INFO_REGEXP catches position and name of the variable in a build error.
-const ERROR_INFO_REGEXP = `\d+:\d+: \w+`
+// errorInfoRegexp catches position and name of the variable in a build error.
+const errorInfoRegexp = `\d+:\d+: \w+`
+
+var errorInfo = regexp.MustCompile(errorInfoRegexp)
 
 var (
-	errorInfo = regexp.MustCompile(ERROR_INFO_REGEXP)
-
-	noProviderErr = regexp.MustCompile(ERROR_INFO_REGEXP + " required module provides package")
-	notUsedErr    = regexp.MustCompile(ERROR_INFO_REGEXP + " declared but not used")
+	noProviderErr = regexp.MustCompile(errorInfoRegexp + " required module provides package")
+	notUsedErr    = regexp.MustCompile(errorInfoRegexp + " declared but not used")
 )
 
 // toggle returns toggled code. First it tries to remove fake usages. If there
@@ -164,30 +165,30 @@ func toggle(code []byte) ([]byte, error) {
 	lines := bytes.Split(code, []byte("\n"))
 	// Check for problematic imports and comment them out if any, storing commented
 	// out lines numbers to commentedLinesNums.
-	noProviderVarsInfo, err := getVarsInfoFrom(code, noProviderErr)
+	noProviderVarsInfo, err := errorVarsInfo(code, noProviderErr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("toggle: %v", err)
 	}
 	var commentedLinesNums []int
 	for _, info := range noProviderVarsInfo {
 		l := &lines[info.lineNum]
-		*l = append([]byte(COMMENT_PREFIX), *l...)
+		*l = append([]byte(commentPrefix), *l...)
 		commentedLinesNums = append(commentedLinesNums, info.lineNum)
 	}
 	// Check for ‘declared but not used’ errors and create fake usages for them if
 	// any.
-	notUsedVarsInfo, err := getVarsInfoFrom(bytes.Join(lines, []byte("\n")), notUsedErr)
+	notUsedVarsInfo, err := errorVarsInfo(bytes.Join(lines, []byte("\n")), notUsedErr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("toggle: %v", err)
 	}
 	for _, info := range notUsedVarsInfo {
 		l := &lines[info.lineNum]
-		*l = append(*l, []byte(USAGE_PREFIX+info.name+USAGE_POSTFIX)...)
+		*l = append(*l, []byte(usagePrefix+info.name+usagePostfix)...)
 	}
 	// Un-comment commented out lines.
 	for _, line := range commentedLinesNums {
 		l := &lines[line]
-		uncommentedLine := []rune(string(*l))[commentPrefixPadding:]
+		uncommentedLine := []rune(string(*l))[len([]rune(commentPrefix)):]
 		*l = []byte(string(uncommentedLine))
 	}
 	return bytes.Join(lines, []byte("\n")), nil
@@ -198,18 +199,18 @@ type VarInfo struct {
 	lineNum int
 }
 
-// getVarsInfoFrom tries to build code and checks a build stdout for errors
+// errorVarsInfo tries to build code and checks a build stdout for errors
 // catched by r. If any, it returns a slice of tuples with a line and a name of
 // every catched symbol.
-func getVarsInfoFrom(code []byte, r *regexp.Regexp) ([]VarInfo, error) {
+func errorVarsInfo(code []byte, r *regexp.Regexp) ([]VarInfo, error) {
 	td, err := os.MkdirTemp(os.TempDir(), "gouse")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("errorVarsInfo: in os.MkdirTemp: %v", err)
 	}
 	defer os.RemoveAll(td)
 	tf, err := os.CreateTemp(td, "*.go")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("errorVarsInfo: in os.CreateTemp: %v", err)
 	}
 	defer tf.Close()
 	tf.Write(code)
@@ -226,7 +227,7 @@ func getVarsInfoFrom(code []byte, r *regexp.Regexp) ([]VarInfo, error) {
 		varInfo := strings.Split(errorInfo.FindString(e), ":")
 		lineNum, err := strconv.Atoi(varInfo[0])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("errorVarsInfo: in strconv.Atoi: %v", err)
 		}
 		info = append(info, VarInfo{
 			name:    varInfo[2],

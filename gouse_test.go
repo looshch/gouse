@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-const FILES_CMP_ERR = `
+const filesCmpErr = `
 ========= got:
 %s
 ========= want:
@@ -78,25 +78,25 @@ func TestMain(t *testing.T) {
 					if bytes.Equal(got, []byte(wantOutput)) {
 						return
 					} else {
-						t.Errorf(FILES_CMP_ERR, got, wantOutput)
+						t.Errorf(filesCmpErr, got, wantOutput)
 					}
 				}
 			}
-			want, e := os.ReadFile(filepath.Join("testdata", tt.wantFilename))
-			if e != nil {
-				t.Fatal(e)
+			want, err := os.ReadFile(filepath.Join("testdata", tt.wantFilename))
+			if err != nil {
+				t.Fatal(err)
 			}
 			if !bytes.Equal(got, want) {
-				t.Errorf(FILES_CMP_ERR, got, want)
+				t.Errorf(filesCmpErr, got, want)
 			}
 		})
 	}
 }
 
 func TestToggle(t *testing.T) {
-	inputsPaths, e := filepath.Glob(filepath.Join("testdata", "*.input"))
-	if e != nil {
-		t.Fatal(e)
+	inputsPaths, err := filepath.Glob(filepath.Join("testdata", "*.input"))
+	if err != nil {
+		t.Fatal(err)
 	}
 	for _, p := range inputsPaths {
 		p := p
@@ -104,27 +104,27 @@ func TestToggle(t *testing.T) {
 		testName := filename[:len(filename)-len(filepath.Ext(p))]
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()
-			input, e := os.ReadFile(p)
-			if e != nil {
-				t.Fatal(e)
+			input, err := os.ReadFile(p)
+			if err != nil {
+				t.Fatal(err)
 			}
-			got, e := toggle(input)
-			if e != nil {
-				t.Fatal(e)
+			got, err := toggle(input)
+			if err != nil {
+				t.Fatal(err)
 			}
-			want, e := os.ReadFile(filepath.Join("testdata", testName+".golden"))
-			if e != nil {
-				t.Fatal(e)
+			want, err := os.ReadFile(filepath.Join("testdata", testName+".golden"))
+			if err != nil {
+				t.Fatal(err)
 			}
 			if !bytes.Equal(got, want) {
-				t.Errorf(FILES_CMP_ERR, got, want)
+				t.Errorf(filesCmpErr, got, want)
 			}
 		})
 	}
 	t.Cleanup(func() {})
 }
 
-func TestGetVarsInfoFrom(t *testing.T) {
+func TestErrorVarsInfo(t *testing.T) {
 	t.Run("ignore other errors", func(t *testing.T) {
 		t.Parallel()
 		input := []byte(
@@ -142,9 +142,9 @@ func TestGetVarsInfoFrom(t *testing.T) {
 			{"notUsed0", 5},
 			{"notUsed1", 8},
 		}
-		got, e := getVarsInfoFrom(input, notUsedErr)
-		if e != nil {
-			t.Fatal(e)
+		got, err := errorVarsInfo(input, notUsedErr)
+		if err != nil {
+			t.Fatal(err)
 		}
 		for i, info := range got {
 			if info.name != want[i].name {
