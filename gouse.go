@@ -37,7 +37,7 @@
 //	...
 //	notUsedFromIo = false; _ = notUsedFromIo /* TODO: gouse */
 //	...
-//	notUsedCore = false; _ = notUsedCore /* TODO: gouse */
+//	notUsedFromCore = false; _ = notUsedFromCore /* TODO: gouse */
 //	...
 //
 package main
@@ -66,14 +66,12 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	logFatalWithoutDate := func(msg string) {
-		log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-		log.Fatal(msg)
-	}
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+
 	paths := flag.Args()
 	if len(paths) == 0 {
 		if *write {
-			logFatalWithoutDate("cannot use -w with standard input")
+			log.Fatal("cannot use -w with standard input")
 		}
 		if err := handle(os.Stdin, os.Stdout, false); err != nil {
 			log.Fatal(err)
@@ -81,7 +79,7 @@ func main() {
 		return
 	}
 	if len(paths) > 1 && !*write {
-		logFatalWithoutDate("must use -w with multiple paths")
+		log.Fatal("must use -w with multiple paths")
 	}
 	for _, p := range paths {
 		var in *os.File
