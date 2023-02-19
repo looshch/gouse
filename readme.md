@@ -54,4 +54,4 @@ TL; DR: to automate automatable.
 * [Visual Studio Code plugin](https://github.com/looshch/gouse-vsc).
 
 ## Credits
-Inspired by [Ilya Polyakov](https://github.com/PolyakovIlya)’s idea.
+Inspired by [Nikita Rabaev](https://github.com/nikrabaev)’s idea.
