@@ -1,6 +1,6 @@
 # gouse
 Toggle ‘declared but not used’ errors in Go by using idiomatic `_ = notUsedVar`
-and leaving a TODO comment. ![a demo gif](demo.gif)
+and leaving a TODO comment. ![a demo](demo.gif)
 
 ## Installation
 ```
@@ -8,43 +8,46 @@ go install github.com/looshch/gouse@latest
 ```
 
 ## Usage
-By default, gouse accepts code from stdin and writes a toggled version to
-stdout. If any file paths provided with ‘-w’ flag, it writes a toggled version
-back to them, or to stdout if only one path provided without the flag.
+By default, gouse accepts code from stdin or from a file provided as a path
+argument and writes the toggled version to stdout. ‘-w’ flag writes the result
+back to the file. If multiple paths provided, gouse writes results back to them
+regardless of ‘-w’ flag.
+
 
 ### Examples
 ```
 $ gouse
 ...input...
-notUsed = false
+notUsed = true
 ...input...
 
 ...output...
-notUsed = false; _ = notUsed /* TODO: gouse */
+notUsed = true; _ = notUsed /* TODO: gouse */
 ...output...
 ```
 ```
 $ gouse main.go
 ...
-notUsed = false; _ = notUsed /* TODO: gouse */
+notUsed = true; _ = notUsed /* TODO: gouse */
 ...
 ```
 ```
-$ gouse -w main.go io.go core.go
+$ gouse main.go io.go core.go
 $ cat main.go io.go core.go
 ...
-notUsedFromMain = false; _ = notUsedFromMain /* TODO: gouse */
+notUsedFromMain = true; _ = notUsedFromMain /* TODO: gouse */
 ...
-notUsedFromIo = false; _ = notUsedFromIo /* TODO: gouse */
+notUsedFromIo = true; _ = notUsedFromIo /* TODO: gouse */
 ...
-notUsedFromCore = false; _ = notUsedFromCore /* TODO: gouse */
+notUsedFromCore = true; _ = notUsedFromCore /* TODO: gouse */
 ...
 ```
 
 ## How it works
-First it tries to remove fake usages. If there is nothing to remove, it tries
-to build an input and checks a build stdout for the errors. If there is any,
-it creates fake usages for unused variables from the errors.
+First it tries to remove previously created fake usages. If there is nothing to
+remove, it tries to build an input and checks the build stdout for ‘declared
+but not used’ errors. If there is any, it creates fake usages for unused
+variables from the errors.
 
 ## [Why](https://loosh.ch/blog/gouse)
 TL; DR: to automate automatable.

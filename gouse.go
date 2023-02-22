@@ -1,45 +1,45 @@
-// gouse allows to toggle ‘declared but not used’ errors by using idiomatic
+// gouse toggles ‘declared but not used’ errors by using idiomatic
 // _ = notUsedVar and leaving a TODO comment.
 //
 // Usage:
 //
-//	gouse [-w] [file ...]
+//	gouse [-w] [file paths...]
 //
-// By default, gouse accepts code from stdin and writes a toggled version to
-// stdout. If any file paths provided with ‘-w’ flag, it writes a toggled
-// version back to them, or to stdout if only one path provided without the
-// flag.
+// By default, gouse accepts code from stdin or from a file provided as a path
+// argument and writes the toggled version to stdout. ‘-w’ flag writes the
+// result back to the file. If multiple paths provided, gouse writes results
+// back to them regardless of ‘-w’ flag.
 //
-// First it tries to remove fake usages. If there is nothing to remove, it
-// tries to build an input and checks a build stdout for the errors. If there
-// is any, it creates fake usages for unused variables from the errors.
+// First it tries to remove previously created fake usages. If there is nothing
+// to remove, it tries to build an input and checks the build stdout for
+// ‘declared but not used’ errors. If there is any, it creates fake usages for
+// unused variables from the errors.
 //
 // Examples
 //
 //	$ gouse
 //	...input...
-//	notUsed = false
+//	notUsed = true
 //	...input...
 //
 //	...output...
-//	notUsed = false; _ = notUsed /* TODO: gouse */
+//	notUsed = true; _ = notUsed /* TODO: gouse */
 //	...output...
 //
 //	$ gouse main.go
 //	...
-//	notUsed = false; _ = notUsed /* TODO: gouse */
+//	notUsed = true; _ = notUsed /* TODO: gouse */
 //	...
 //
-//	$ gouse -w main.go io.go core.go
+//	$ gouse main.go io.go core.go
 //	$ cat main.go io.go core.go
 //	...
-//	notUsedFromMain = false; _ = notUsedFromMain /* TODO: gouse */
+//	notUsedFromMain = true; _ = notUsedFromMain /* TODO: gouse */
 //	...
-//	notUsedFromIo = false; _ = notUsedFromIo /* TODO: gouse */
+//	notUsedFromIo = true; _ = notUsedFromIo /* TODO: gouse */
 //	...
-//	notUsedFromCore = false; _ = notUsedFromCore /* TODO: gouse */
+//	notUsedFromCore = true; _ = notUsedFromCore /* TODO: gouse */
 //	...
-//
 package main
 
 import (
@@ -55,8 +55,10 @@ import (
 	"strings"
 )
 
+const usageText = "usage: gouse [-w] [file paths...]"
+
 func usage() {
-	fmt.Println("usage: gouse [-w] [file ...]")
+	fmt.Println(usageText)
 	os.Exit(2)
 }
 
@@ -69,60 +71,60 @@ func main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	paths := flag.Args()
+	writeToFile := *write
 	if len(paths) == 0 {
-		if *write {
+		if writeToFile {
 			log.Fatal("cannot use -w with standard input")
 		}
-		if err := handle(os.Stdin, os.Stdout, false); err != nil {
+		if err := toggleInput(os.Stdin, os.Stdout, false); err != nil {
 			log.Fatal(err)
 		}
 		return
 	}
-	if len(paths) > 1 && !*write {
-		log.Fatal("must use -w with multiple paths")
-	}
+	writeToFiles := writeToFile || len(paths) > 1
 	for _, p := range paths {
 		var in *os.File
 		var out **os.File
-		var flag int
-		if *write {
+		var access int
+		if writeToFiles {
 			out = &in
-			flag = os.O_RDWR
+			access = os.O_RDWR
 		} else {
 			out = &os.Stdout
-			flag = os.O_RDONLY
+			access = os.O_RDONLY
 		}
-		in, err := os.OpenFile(p, flag, os.ModeExclusive)
+		in, err := os.OpenFile(p, access, os.ModeExclusive)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer in.Close()
-		if err := handle(in, *out, *write); err != nil {
+		if err := toggleInput(in, *out, writeToFiles); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-// handle manages IO.
-func handle(in *os.File, out *os.File, write bool) error {
+// toggleInput takes code from in, toggles it, deletes contents of out if it’s a
+// file, and writes the toggled version to out.
+func toggleInput(in *os.File, out *os.File, writeToFile bool) error {
 	code, err := io.ReadAll(in)
 	if err != nil {
-		return fmt.Errorf("handle: in io.ReadAll: %v", err)
+		return fmt.Errorf("toggleInput: in io.ReadAll: %v", err)
 	}
 	toggled, err := toggle(code)
 	if err != nil {
-		return fmt.Errorf("handle: %v", err)
+		return fmt.Errorf("toggleInput: %v", err)
 	}
-	if write {
+	if writeToFile {
 		if _, err := out.Seek(0, 0); err != nil {
-			return fmt.Errorf("handle: in *File.Seek: %v", err)
+			return fmt.Errorf("toggleInput: in *File.Seek: %v", err)
 		}
 		if err := out.Truncate(0); err != nil {
-			return fmt.Errorf("handle: in *File.Truncate: %v", err)
+			return fmt.Errorf("toggleInput: in *File.Truncate: %v", err)
 		}
 	}
 	if _, err := out.Write(toggled); err != nil {
-		return fmt.Errorf("handle: in *File.Write: %v", err)
+		return fmt.Errorf("toggleInput: in *File.Write: %v", err)
 	}
 	return nil
 }
@@ -130,14 +132,14 @@ func handle(in *os.File, out *os.File, write bool) error {
 const (
 	commentPrefix = "// "
 
-	usagePrefix  = "; _ ="
-	usagePostfix = " /* TODO: gouse */"
+	fakeUsagePrefix = "; _ ="
+	fakeUsageSuffix = " /* TODO: gouse */"
 )
 
 var (
-	escapedUsagePostfix = regexp.QuoteMeta(usagePostfix)
-	used                = regexp.MustCompile(usagePrefix + ".*" + escapedUsagePostfix)
-	usedAndGofmted      = regexp.MustCompile(`\s*_\s*= \w*` + escapedUsagePostfix)
+	escapedFakeUsageSuffix = regexp.QuoteMeta(fakeUsageSuffix)
+	fakeUsage              = regexp.MustCompile(fakeUsagePrefix + ".*" + escapedFakeUsageSuffix)
+	fakeUsageAfterGofmt    = regexp.MustCompile(`\s*_\s*= \w*` + escapedFakeUsageSuffix)
 )
 
 // errorInfoRegexp catches position and name of the variable in a build error.
@@ -146,24 +148,24 @@ const errorInfoRegexp = `\d+:\d+: \w+`
 var errorInfo = regexp.MustCompile(errorInfoRegexp)
 
 var (
-	noProviderErr = regexp.MustCompile(errorInfoRegexp + " required module provides package")
-	notUsedErr    = regexp.MustCompile(errorInfoRegexp + " declared but not used")
+	noProviderError = regexp.MustCompile(errorInfoRegexp + " required module provides package")
+	notUsedError    = regexp.MustCompile(errorInfoRegexp + " declared but not used")
 )
 
-// toggle returns toggled code. First it tries to remove fake usages. If there
-// is nothing to remove, it creates them.
+// toggle returns toggled code. First it tries to remove previosly created fake
+// usages. If there is nothing to remove, it creates them.
 func toggle(code []byte) ([]byte, error) {
-	if used.Match(code) { // used must be before usedAndGofmted because it also removes ‘;’.
-		return used.ReplaceAll(code, []byte("")), nil
+	if fakeUsage.Match(code) { // fakeUsage must be before fakeUsageAfterGofmt because it also removes the leading ‘;’.
+		return fakeUsage.ReplaceAll(code, []byte("")), nil
 	}
-	if usedAndGofmted.Match(code) {
-		return usedAndGofmted.ReplaceAll(code, []byte("")), nil
+	if fakeUsageAfterGofmt.Match(code) {
+		return fakeUsageAfterGofmt.ReplaceAll(code, []byte("")), nil
 	}
 
 	lines := bytes.Split(code, []byte("\n"))
 	// Check for problematic imports and comment them out if any, storing commented
 	// out lines numbers to commentedLinesNums.
-	noProviderVarsInfo, err := errorVarsInfo(code, noProviderErr)
+	noProviderVarsInfo, err := errorVarsInfo(code, noProviderError)
 	if err != nil {
 		return nil, fmt.Errorf("toggle: %v", err)
 	}
@@ -175,13 +177,13 @@ func toggle(code []byte) ([]byte, error) {
 	}
 	// Check for ‘declared but not used’ errors and create fake usages for them if
 	// any.
-	notUsedVarsInfo, err := errorVarsInfo(bytes.Join(lines, []byte("\n")), notUsedErr)
+	notUsedVarsInfo, err := errorVarsInfo(bytes.Join(lines, []byte("\n")), notUsedError)
 	if err != nil {
 		return nil, fmt.Errorf("toggle: %v", err)
 	}
 	for _, info := range notUsedVarsInfo {
 		l := &lines[info.lineNum]
-		*l = append(*l, []byte(usagePrefix+info.name+usagePostfix)...)
+		*l = append(*l, []byte(fakeUsagePrefix+info.name+fakeUsageSuffix)...)
 	}
 	// Un-comment commented out lines.
 	for _, line := range commentedLinesNums {

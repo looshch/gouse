@@ -40,11 +40,15 @@ func TestMain(t *testing.T) {
 		wantFilename string
 		wantOutput   string
 	}{
+		{args: []string{"-h"}, wantOutput: usageText + "\n"},
 		{args: []string{}, wantFilename: "not_used.golden"},
 		{args: []string{"-w"}, wantOutput: "cannot use -w with standard input\n"},
 		{args: []string{tfPath}, wantFilename: "not_used.golden"},
-		{args: []string{"-w", tfPath, tfPath}, wantFilename: "used.golden"}, // Double processing of the same file so used.golden without not_ prefix.
-		{args: []string{tfPath, tfPath}, wantOutput: "must use -w with multiple paths\n"},
+
+		// Double processing of the same file so used.golden without not_ prefix.
+		{args: []string{"-w", tfPath, tfPath}, wantFilename: "used.golden"},
+		{args: []string{tfPath, tfPath}, wantFilename: "used.golden"},
+
 	}
 	for _, tt := range tests {
 		args := tt.args
@@ -63,9 +67,8 @@ func TestMain(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			isWriteFlagValid := len(args) > 1
-			isWriteFlagUsed := isWriteFlagValid && args[0] == "-w"
-			if isWriteFlagUsed {
+			mustWrite := len(args) > 1
+			if mustWrite {
 				if err := gouse.Run(); err != nil {
 					t.Fatal(err)
 				}
@@ -142,7 +145,7 @@ func TestErrorVarsInfo(t *testing.T) {
 			{"notUsed0", 5},
 			{"notUsed1", 8},
 		}
-		got, err := errorVarsInfo(input, notUsedErr)
+		got, err := errorVarsInfo(input, notUsedError)
 		if err != nil {
 			t.Fatal(err)
 		}
