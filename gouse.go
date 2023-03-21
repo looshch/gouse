@@ -55,6 +55,7 @@ import (
 	"strings"
 )
 
+
 const usageText = "usage: gouse [-w] [file paths...]"
 
 func usage() {
@@ -62,6 +63,9 @@ func usage() {
 	os.Exit(2)
 }
 
+const currentVersion = "0.3.2"
+
+var version = flag.Bool("v", false, "show version")
 var write = flag.Bool("w", false, "write results to files")
 
 func main() {
@@ -69,6 +73,11 @@ func main() {
 	flag.Parse()
 
 	log.SetFlags(0)
+
+	if *version {
+		fmt.Println(currentVersion)
+		return
+	}
 
 	paths := flag.Args()
 	writeToFile := *write

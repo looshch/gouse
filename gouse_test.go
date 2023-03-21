@@ -40,6 +40,7 @@ func TestMain(t *testing.T) {
 		wantFilename string
 		wantOutput   string
 	}{
+		{args: []string{"-v"}, wantOutput: currentVersion + "\n"},
 		{args: []string{"-h"}, wantOutput: usageText + "\n"},
 		{args: []string{}, wantFilename: "not_used.golden"},
 		{args: []string{"-w"}, wantOutput: "cannot use -w with standard input\n"},
@@ -48,7 +49,6 @@ func TestMain(t *testing.T) {
 		// Double processing of the same file so used.golden without not_ prefix.
 		{args: []string{"-w", tfPath, tfPath}, wantFilename: "used.golden"},
 		{args: []string{tfPath, tfPath}, wantFilename: "used.golden"},
-
 	}
 	for _, tt := range tests {
 		args := tt.args
@@ -77,7 +77,8 @@ func TestMain(t *testing.T) {
 				}
 			} else {
 				wantOutput := tt.wantOutput
-				if got, err = gouse.CombinedOutput(); err != nil {
+				got, _ = gouse.CombinedOutput()
+				if len(wantOutput) > 0 {
 					if bytes.Equal(got, []byte(wantOutput)) {
 						return
 					} else {
