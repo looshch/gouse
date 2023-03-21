@@ -149,7 +149,7 @@ var errorInfo = regexp.MustCompile(errorInfoRegexp)
 
 var (
 	noProviderError = regexp.MustCompile(errorInfoRegexp + " required module provides package")
-	notUsedError    = regexp.MustCompile(errorInfoRegexp + " declared and not used")
+	notUsedError    = regexp.MustCompile(errorInfoRegexp + " declared but|and not used")
 )
 
 // toggle returns toggled code. First it tries to remove previosly created fake
