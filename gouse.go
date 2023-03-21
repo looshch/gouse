@@ -1,4 +1,4 @@
-// gouse toggles ‘declared but not used’ errors by using idiomatic
+// gouse toggles ‘declared and not used’ errors by using idiomatic
 // _ = notUsedVar and leaving a TODO comment.
 //
 // Usage:
@@ -12,7 +12,7 @@
 //
 // First it tries to remove previously created fake usages. If there is nothing
 // to remove, it tries to build an input and checks the build stdout for
-// ‘declared but not used’ errors. If there is any, it creates fake usages for
+// ‘declared and not used’ errors. If there is any, it creates fake usages for
 // unused variables from the errors.
 //
 // Examples
@@ -68,7 +68,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.SetFlags(0)
 
 	paths := flag.Args()
 	writeToFile := *write
@@ -76,7 +76,7 @@ func main() {
 		if writeToFile {
 			log.Fatal("cannot use -w with standard input")
 		}
-		if err := toggleInput(os.Stdin, os.Stdout, false); err != nil {
+		if err := run(os.Stdin, os.Stdout, false); err != nil {
 			log.Fatal(err)
 		}
 		return
@@ -98,33 +98,33 @@ func main() {
 			log.Fatal(err)
 		}
 		defer in.Close()
-		if err := toggleInput(in, *out, writeToFiles); err != nil {
+		if err := run(in, *out, writeToFiles); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-// toggleInput takes code from in, toggles it, deletes contents of out if it’s a
+// run takes code from in, toggles it, deletes contents of out if it’s a
 // file, and writes the toggled version to out.
-func toggleInput(in *os.File, out *os.File, writeToFile bool) error {
+func run(in *os.File, out *os.File, writeToOut bool) error {
 	code, err := io.ReadAll(in)
 	if err != nil {
-		return fmt.Errorf("toggleInput: in io.ReadAll: %v", err)
+		return fmt.Errorf("run: in io.ReadAll: %v", err)
 	}
 	toggled, err := toggle(code)
 	if err != nil {
-		return fmt.Errorf("toggleInput: %v", err)
+		return fmt.Errorf("run: %v", err)
 	}
-	if writeToFile {
+	if writeToOut {
 		if _, err := out.Seek(0, 0); err != nil {
-			return fmt.Errorf("toggleInput: in *File.Seek: %v", err)
+			return fmt.Errorf("run: in *File.Seek: %v", err)
 		}
 		if err := out.Truncate(0); err != nil {
-			return fmt.Errorf("toggleInput: in *File.Truncate: %v", err)
+			return fmt.Errorf("run: in *File.Truncate: %v", err)
 		}
 	}
 	if _, err := out.Write(toggled); err != nil {
-		return fmt.Errorf("toggleInput: in *File.Write: %v", err)
+		return fmt.Errorf("run: in *File.Write: %v", err)
 	}
 	return nil
 }
@@ -149,7 +149,7 @@ var errorInfo = regexp.MustCompile(errorInfoRegexp)
 
 var (
 	noProviderError = regexp.MustCompile(errorInfoRegexp + " required module provides package")
-	notUsedError    = regexp.MustCompile(errorInfoRegexp + " declared but not used")
+	notUsedError    = regexp.MustCompile(errorInfoRegexp + " declared and not used")
 )
 
 // toggle returns toggled code. First it tries to remove previosly created fake
@@ -175,7 +175,7 @@ func toggle(code []byte) ([]byte, error) {
 		*l = append([]byte(commentPrefix), *l...)
 		commentedLinesNums = append(commentedLinesNums, info.lineNum)
 	}
-	// Check for ‘declared but not used’ errors and create fake usages for them if
+	// Check for ‘declared and not used’ errors and create fake usages for them if
 	// any.
 	notUsedVarsInfo, err := errorVarsInfo(bytes.Join(lines, []byte("\n")), notUsedError)
 	if err != nil {

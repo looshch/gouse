@@ -1,5 +1,5 @@
 # gouse
-Toggle ‘declared but not used’ errors in Go by using idiomatic `_ = notUsedVar`
+Toggle ‘declared and not used’ errors in Go by using idiomatic `_ = notUsedVar`
 and leaving a TODO comment. ![a demo](demo.gif)
 
 ## Installation
@@ -46,7 +46,7 @@ notUsedFromCore = true; _ = notUsedFromCore /* TODO: gouse */
 ## How it works
 First it tries to remove previously created fake usages. If there is nothing to
 remove, it tries to build an input and checks the build stdout for ‘declared
-but not used’ errors. If there is any, it creates fake usages for unused
+and not used’ errors. If there is any, it creates fake usages for unused
 variables from the errors.
 
 ## [Why](https://loosh.ch/blog/gouse)
