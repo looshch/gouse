@@ -115,7 +115,7 @@ func main() {
 
 // run takes code from in, toggles it, deletes contents of out if it’s a
 // file, and writes the toggled version to out.
-func run(in *os.File, out *os.File, writeToOut bool) error {
+func run(in *os.File, out *os.File, truncateOut bool) error {
 	code, err := io.ReadAll(in)
 	if err != nil {
 		return fmt.Errorf("run: in io.ReadAll: %v", err)
@@ -124,7 +124,7 @@ func run(in *os.File, out *os.File, writeToOut bool) error {
 	if err != nil {
 		return fmt.Errorf("run: %v", err)
 	}
-	if writeToOut {
+	if truncateOut {
 		if _, err := out.Seek(0, 0); err != nil {
 			return fmt.Errorf("run: in *File.Seek: %v", err)
 		}
