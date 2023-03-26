@@ -10,8 +10,7 @@ go install github.com/looshch/gouse@latest
 ## Usage
 By default, gouse accepts code from stdin or from a file provided as a path
 argument and writes the toggled version to stdout. ‘-w’ flag writes the result
-back to the file. If multiple paths provided, gouse writes results back to them
-regardless of ‘-w’ flag.
+back to the file. If multiple paths provided, ‘-w’ flag is required.
 
 
 ### Examples

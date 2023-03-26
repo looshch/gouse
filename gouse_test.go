@@ -42,13 +42,12 @@ func TestMain(t *testing.T) {
 	}{
 		{args: []string{"-v"}, wantOutput: currentVersion + "\n"},
 		{args: []string{"-h"}, wantOutput: usageText + "\n"},
+		{args: []string{"-w"}, wantOutput: "cannot use ‘-w’ flag with standard input\n"},
+		{args: []string{tfPath, tfPath}, wantOutput: "must use ‘-w’ flag with more than one path\n"},
 		{args: []string{}, wantFilename: "not_used.golden"},
-		{args: []string{"-w"}, wantOutput: "cannot use -w with standard input\n"},
 		{args: []string{tfPath}, wantFilename: "not_used.golden"},
-
 		// Double processing of the same file so used.golden without not_ prefix.
 		{args: []string{"-w", tfPath, tfPath}, wantFilename: "used.golden"},
-		{args: []string{tfPath, tfPath}, wantFilename: "used.golden"},
 	}
 	for _, tt := range tests {
 		args := tt.args
@@ -67,7 +66,7 @@ func TestMain(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			mustWrite := len(args) > 1
+			mustWrite := len(args) > 1 && args[0] == "-w"
 			if mustWrite {
 				if err := gouse.Run(); err != nil {
 					t.Fatal(err)

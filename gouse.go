@@ -7,8 +7,7 @@
 //
 // By default, gouse accepts code from stdin or from a file provided as a path
 // argument and writes the toggled version to stdout. ‘-w’ flag writes the
-// result back to the file. If multiple paths provided, gouse writes results
-// back to them regardless of ‘-w’ flag.
+// result back to the file. If multiple paths provided, ‘-w’ flag is required.
 //
 // First it tries to remove previously created fake usages. If there is nothing
 // to remove, it tries to build an input and checks the build stdout for
@@ -83,19 +82,21 @@ func main() {
 	writeToFile := *write
 	if len(paths) == 0 {
 		if writeToFile {
-			log.Fatal("cannot use -w with standard input")
+			log.Fatal("cannot use ‘-w’ flag with standard input")
 		}
 		if err := run(os.Stdin, os.Stdout, false); err != nil {
 			log.Fatal(err)
 		}
 		return
 	}
-	writeToFiles := writeToFile || len(paths) > 1
+	if len(paths) > 1 && !writeToFile {
+		log.Fatal("must use ‘-w’ flag with more than one path")
+	}
 	for _, p := range paths {
 		var in *os.File
 		var out **os.File
 		var access int
-		if writeToFiles {
+		if writeToFile {
 			out = &in
 			access = os.O_RDWR
 		} else {
@@ -107,7 +108,7 @@ func main() {
 			log.Fatal(err)
 		}
 		defer in.Close()
-		if err := run(in, *out, writeToFiles); err != nil {
+		if err := run(in, *out, writeToFile); err != nil {
 			log.Fatal(err)
 		}
 	}
