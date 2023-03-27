@@ -54,7 +54,6 @@ import (
 	"strings"
 )
 
-
 const usageText = "usage: gouse [-w] [file paths...]"
 
 func usage() {
@@ -62,7 +61,7 @@ func usage() {
 	os.Exit(2)
 }
 
-const currentVersion = "0.3.2"
+const currentVersion = "0.4.1"
 
 var version = flag.Bool("v", false, "show version")
 var write = flag.Bool("w", false, "write results to files")
@@ -84,7 +83,7 @@ func main() {
 		if writeToFile {
 			log.Fatal("cannot use ‘-w’ flag with standard input")
 		}
-		if err := run(os.Stdin, os.Stdout, false); err != nil {
+		if err := run(os.Stdin, os.Stdout); err != nil {
 			log.Fatal(err)
 		}
 		return
@@ -108,15 +107,15 @@ func main() {
 			log.Fatal(err)
 		}
 		defer in.Close()
-		if err := run(in, *out, writeToFile); err != nil {
+		if err := run(in, *out); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-// run takes code from in, toggles it, deletes contents of out if it’s a
-// file, and writes the toggled version to out.
-func run(in *os.File, out *os.File, truncateOut bool) error {
+// run takes code from in, toggles it, deletes contents of out if it’s in,
+// and writes the toggled version to out.
+func run(in *os.File, out *os.File) error {
 	code, err := io.ReadAll(in)
 	if err != nil {
 		return fmt.Errorf("run: in io.ReadAll: %v", err)
@@ -125,7 +124,7 @@ func run(in *os.File, out *os.File, truncateOut bool) error {
 	if err != nil {
 		return fmt.Errorf("run: %v", err)
 	}
-	if truncateOut {
+	if out == in {
 		if _, err := out.Seek(0, 0); err != nil {
 			return fmt.Errorf("run: in *File.Seek: %v", err)
 		}
