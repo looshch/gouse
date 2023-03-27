@@ -30,7 +30,7 @@
 //	notUsed = true; _ = notUsed /* TODO: gouse */
 //	...
 //
-//	$ gouse main.go io.go core.go
+//	$ gouse -w main.go io.go core.go
 //	$ cat main.go io.go core.go
 //	...
 //	notUsedFromMain = true; _ = notUsedFromMain /* TODO: gouse */
