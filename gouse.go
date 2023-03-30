@@ -61,7 +61,7 @@ func usage() {
 	os.Exit(2)
 }
 
-const currentVersion = "0.4.1"
+const currentVersion = "0.4.3"
 
 var version = flag.Bool("v", false, "show version")
 var write = flag.Bool("w", false, "write results to files")
