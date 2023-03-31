@@ -43,6 +43,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -61,7 +62,10 @@ func usage() {
 	os.Exit(2)
 }
 
-const currentVersion = "0.4.3"
+var errCannotWriteToStdin = errors.New("cannot use ‘-w’ flag with standard input")
+var errMustWriteToFiles = errors.New("must use ‘-w’ flag with more than one path")
+
+const currentVersion = "0.4.4"
 
 var version = flag.Bool("v", false, "show version")
 var write = flag.Bool("w", false, "write results to files")
@@ -81,7 +85,7 @@ func main() {
 	writeToFile := *write
 	if len(paths) == 0 {
 		if writeToFile {
-			log.Fatal("cannot use ‘-w’ flag with standard input")
+			log.Fatal(errCannotWriteToStdin)
 		}
 		if err := run(os.Stdin, os.Stdout); err != nil {
 			log.Fatal(err)
@@ -89,7 +93,7 @@ func main() {
 		return
 	}
 	if len(paths) > 1 && !writeToFile {
-		log.Fatal("must use ‘-w’ flag with more than one path")
+		log.Fatal(errMustWriteToFiles)
 	}
 	for _, p := range paths {
 		var in *os.File

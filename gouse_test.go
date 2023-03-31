@@ -42,8 +42,8 @@ func TestMain(t *testing.T) {
 	}{
 		{args: []string{"-v"}, wantOutput: currentVersion + "\n"},
 		{args: []string{"-h"}, wantOutput: usageText + "\n"},
-		{args: []string{"-w"}, wantOutput: "cannot use ‘-w’ flag with standard input\n"},
-		{args: []string{tfPath, tfPath}, wantOutput: "must use ‘-w’ flag with more than one path\n"},
+		{args: []string{"-w"}, wantOutput: errCannotWriteToStdin.Error() + "\n"},
+		{args: []string{tfPath, tfPath}, wantOutput: errMustWriteToFiles.Error() + "\n"},
 		{args: []string{}, wantFilename: "not_used.golden"},
 		{args: []string{tfPath}, wantFilename: "not_used.golden"},
 		// Double processing of the same file so used.golden without not_ prefix.
