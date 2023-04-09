@@ -127,7 +127,7 @@ func TestToggle(t *testing.T) {
 	t.Cleanup(func() {})
 }
 
-func TestErrorVarsInfo(t *testing.T) {
+func TestGetSymbolsInfoFromBuildErrors(t *testing.T) {
 	t.Run("ignore other errors", func(t *testing.T) {
 		t.Parallel()
 		input := []byte(
@@ -141,11 +141,11 @@ func TestErrorVarsInfo(t *testing.T) {
 		         notUsed1, used1 := "", "", "" // more values than variables
 		         _, _ = used0, used1 // no closing brace`,
 		)
-		want := []VarInfo{
+		want := []SymbolInfo{
 			{"notUsed0", 5},
 			{"notUsed1", 8},
 		}
-		got, err := errorVarsInfo(input, notUsedError)
+		got, err := getSymbolsInfoFromBuildErrors(input, notUsedError)
 		if err != nil {
 			t.Fatal(err)
 		}

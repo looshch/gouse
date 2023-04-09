@@ -82,9 +82,8 @@ func main() {
 	}
 
 	paths := flag.Args()
-	writeToFile := *write
 	if len(paths) == 0 {
-		if writeToFile {
+		if *write {
 			log.Fatal(errCannotWriteToStdin)
 		}
 		if err := run(os.Stdin, os.Stdout); err != nil {
@@ -92,14 +91,14 @@ func main() {
 		}
 		return
 	}
-	if len(paths) > 1 && !writeToFile {
+	if len(paths) > 1 && !*write {
 		log.Fatal(errMustWriteToFiles)
 	}
 	for _, p := range paths {
 		var in *os.File
 		var out **os.File
 		var access int
-		if writeToFile {
+		if *write {
 			out = &in
 			access = os.O_RDWR
 		} else {
@@ -155,14 +154,14 @@ var (
 	fakeUsageAfterGofmt    = regexp.MustCompile(`\s*_\s*= \w*` + escapedFakeUsageSuffix)
 )
 
-// errorInfoRegexp catches position and name of the variable in a build error.
-const errorInfoRegexp = `\d+:\d+: \w+`
+// errorSymbolInfoRegexp catches position and name of the symbol in a build error.
+const errorSymbolInfoRegexp = `\d+:\d+: \w+`
 
-var errorInfo = regexp.MustCompile(errorInfoRegexp)
+var errorSymbolInfo = regexp.MustCompile(errorSymbolInfoRegexp)
 
 var (
-	noProviderError = regexp.MustCompile(errorInfoRegexp + " required module provides package")
-	notUsedError    = regexp.MustCompile(errorInfoRegexp + " declared but|and not used")
+	noProviderError = regexp.MustCompile(errorSymbolInfoRegexp + " required module provides package")
+	notUsedError    = regexp.MustCompile(errorSymbolInfoRegexp + " declared but|and not used")
 )
 
 // toggle returns toggled code. First it tries to remove previosly created fake
@@ -178,19 +177,19 @@ func toggle(code []byte) ([]byte, error) {
 	lines := bytes.Split(code, []byte("\n"))
 	// Check for problematic imports and comment them out if any, storing commented
 	// out lines numbers to commentedLinesNums.
-	noProviderVarsInfo, err := errorVarsInfo(code, noProviderError)
+	importsWithoutProviderInfo, err := getSymbolsInfoFromBuildErrors(code, noProviderError)
 	if err != nil {
 		return nil, fmt.Errorf("toggle: %v", err)
 	}
 	var commentedLinesNums []int
-	for _, info := range noProviderVarsInfo {
+	for _, info := range importsWithoutProviderInfo {
 		l := &lines[info.lineNum]
 		*l = append([]byte(commentPrefix), *l...)
 		commentedLinesNums = append(commentedLinesNums, info.lineNum)
 	}
 	// Check for ‘declared and not used’ errors and create fake usages for them if
 	// any.
-	notUsedVarsInfo, err := errorVarsInfo(bytes.Join(lines, []byte("\n")), notUsedError)
+	notUsedVarsInfo, err := getSymbolsInfoFromBuildErrors(bytes.Join(lines, []byte("\n")), notUsedError)
 	if err != nil {
 		return nil, fmt.Errorf("toggle: %v", err)
 	}
@@ -207,43 +206,43 @@ func toggle(code []byte) ([]byte, error) {
 	return bytes.Join(lines, []byte("\n")), nil
 }
 
-type VarInfo struct {
+type SymbolInfo struct {
 	name    string
 	lineNum int
 }
 
-// errorVarsInfo tries to build code and checks a build stdout for errors
-// catched by r. If any, it returns a slice of tuples with a line and a name of
-// every catched symbol.
-func errorVarsInfo(code []byte, r *regexp.Regexp) ([]VarInfo, error) {
+// getSymbolsInfoFromBuildErrors tries to build code and checks a build stdout
+// for errors catched by r. If any, it returns a slice of tuples with a line
+// and a name of every catched symbol.
+func getSymbolsInfoFromBuildErrors(code []byte, r *regexp.Regexp) ([]SymbolInfo, error) {
 	td, err := os.MkdirTemp(os.TempDir(), "gouse")
 	if err != nil {
-		return nil, fmt.Errorf("errorVarsInfo: in os.MkdirTemp: %v", err)
+		return nil, fmt.Errorf("getSymbolsInfoFromBuildErrors: in os.MkdirTemp: %v", err)
 	}
 	defer os.RemoveAll(td)
 	tf, err := os.CreateTemp(td, "*.go")
 	if err != nil {
-		return nil, fmt.Errorf("errorVarsInfo: in os.CreateTemp: %v", err)
+		return nil, fmt.Errorf("getSymbolsInfoFromBuildErrors: in os.CreateTemp: %v", err)
 	}
 	defer tf.Close()
 	tf.Write(code)
-	bo, err := exec.Command("go", "build", "-o", os.DevNull, tf.Name()).CombinedOutput()
+	boutput, err := exec.Command("go", "build", "-o", os.DevNull, tf.Name()).CombinedOutput()
 	if err == nil {
 		return nil, nil
 	}
-	buildErrors := strings.Split(string(bo), "\n")
-	var info []VarInfo
-	for _, e := range buildErrors {
+	berrors := strings.Split(string(boutput), "\n")
+	var info []SymbolInfo
+	for _, e := range berrors {
 		if !r.MatchString(e) {
 			continue
 		}
-		varInfo := strings.Split(errorInfo.FindString(e), ":")
-		lineNum, err := strconv.Atoi(varInfo[0])
+		symbolInfo := strings.Split(errorSymbolInfo.FindString(e), ":")
+		lineNum, err := strconv.Atoi(symbolInfo[0])
 		if err != nil {
-			return nil, fmt.Errorf("errorVarsInfo: in strconv.Atoi: %v", err)
+			return nil, fmt.Errorf("getSymbolsInfoFromBuildErrors: in strconv.Atoi: %v", err)
 		}
-		info = append(info, VarInfo{
-			name:    varInfo[2],
+		info = append(info, SymbolInfo{
+			name:    symbolInfo[2],
 			lineNum: lineNum - 1, // An adjustment for 0-based count.
 		})
 	}
