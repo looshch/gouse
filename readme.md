@@ -48,12 +48,12 @@ remove, it tries to build an input and checks the build stdout for ‘declared
 and not used’ errors. If there is any, it creates fake usages for unused
 variables from the errors.
 
-## [Why](https://loosh.ch/blog/gouse)
-TL; DR: to automate automatable.
-
 ## Integrations
 * Vim: just bind `<cmd> w <bar> !gouse -w %<cr><cr>` to some mapping.
 * [Visual Studio Code plugin](https://github.com/looshch/gouse-vsc).
+
+## [Why](https://loosh.ch/blog/gouse)
+TL; DR: to automate automatable.
 
 ## Credits
 Inspired by [Nikita Rabaev](https://github.com/nikrabaev)’s idea.
