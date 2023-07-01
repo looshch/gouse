@@ -50,10 +50,8 @@ variables from the errors.
 
 ## Integrations
 * Vim: just bind `<cmd> w <bar> !gouse -w %<cr><cr>` to some mapping.
-* [Visual Studio Code plugin](https://github.com/looshch/gouse-vsc).
-
-## [Why](https://loosh.ch/blog/gouse)
-TL; DR: to automate automatable.
+* [Visual Studio Code
+  plugin](https://marketplace.visualstudio.com/items?itemName=looshch.gouse).
 
 ## Credits
 Inspired by [Nikita Rabaev](https://github.com/nikrabaev)’s idea.
