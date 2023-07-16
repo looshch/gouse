@@ -65,7 +65,7 @@ func usage() {
 var errCannotWriteToStdin = errors.New("cannot use ‘-w’ flag with standard input")
 var errMustWriteToFiles = errors.New("must use ‘-w’ flag with more than one path")
 
-const currentVersion = "1.0.0"
+const currentVersion = "1.1.0"
 
 var version = flag.Bool("v", false, "show version")
 var write = flag.Bool("w", false, "write results to files")
@@ -161,7 +161,7 @@ var errorSymbolInfo = regexp.MustCompile(errorSymbolInfoRegexp)
 
 var (
 	noProviderError = regexp.MustCompile(errorSymbolInfoRegexp + " required module provides package")
-	notUsedError    = regexp.MustCompile(errorSymbolInfoRegexp + " declared but|and not used")
+	notUsedError    = regexp.MustCompile(errorSymbolInfoRegexp + " declared (but|and) not used")
 )
 
 // toggle returns toggled code. First it tries to remove previosly created fake
