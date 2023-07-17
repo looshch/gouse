@@ -65,7 +65,7 @@ func usage() {
 var errCannotWriteToStdin = errors.New("cannot use ‘-w’ flag with standard input")
 var errMustWriteToFiles = errors.New("must use ‘-w’ flag with more than one path")
 
-const currentVersion = "1.1.0"
+const currentVersion = "1.1.1"
 
 var version = flag.Bool("v", false, "show version")
 var write = flag.Bool("w", false, "write results to files")

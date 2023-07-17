@@ -1,6 +1,6 @@
 package p
 
-import "github.com/gorilla/mux" // Any non-existent third party dependency works.
+import "testing" // Any non-existent dependency works.
 
 func main() {
 	var (
