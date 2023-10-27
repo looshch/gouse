@@ -55,6 +55,11 @@ import (
 	"strings"
 )
 
+const currentVersion = "1.1.2"
+
+// errorSymbolInfoRegexp catches position and name of the symbol in a build error.
+const errorSymbolInfoRegexp = `\d+:\d+: \w+`
+
 const usageText = "usage: gouse [-w] [file paths...]"
 
 func usage() {
@@ -64,8 +69,6 @@ func usage() {
 
 var errCannotWriteToStdin = errors.New("cannot use ‘-w’ flag with standard input")
 var errMustWriteToFiles = errors.New("must use ‘-w’ flag with more than one path")
-
-const currentVersion = "1.1.1"
 
 var version = flag.Bool("v", false, "show version")
 var write = flag.Bool("w", false, "write results to files")
@@ -154,11 +157,6 @@ var (
 	fakeUsageAfterGofmt    = regexp.MustCompile(`\s*_\s*= \w*` + escapedFakeUsageSuffix)
 )
 
-// errorSymbolInfoRegexp catches position and name of the symbol in a build error.
-const errorSymbolInfoRegexp = `\d+:\d+: \w+`
-
-var errorSymbolInfo = regexp.MustCompile(errorSymbolInfoRegexp)
-
 var (
 	noProviderError = regexp.MustCompile(errorSymbolInfoRegexp + " required module provides package")
 	notUsedError    = regexp.MustCompile(errorSymbolInfoRegexp + " declared (but|and) not used")
@@ -167,7 +165,8 @@ var (
 // toggle returns toggled code. First it tries to remove previosly created fake
 // usages. If there is nothing to remove, it creates them.
 func toggle(code []byte) ([]byte, error) {
-	if fakeUsage.Match(code) { // fakeUsage must be before fakeUsageAfterGofmt because it also removes the leading ‘;’.
+	// fakeUsage must be before fakeUsageAfterGofmt because it also removes the leading ‘;’.
+	if fakeUsage.Match(code) {
 		return fakeUsage.ReplaceAll(code, []byte("")), nil
 	}
 	if fakeUsageAfterGofmt.Match(code) {
@@ -211,8 +210,10 @@ type SymbolInfo struct {
 	lineNum int
 }
 
+var errorSymbolInfo = regexp.MustCompile(errorSymbolInfoRegexp)
+
 // getSymbolsInfoFromBuildErrors tries to build code and checks a build stdout
-// for errors catched by r. If any, it returns a slice of tuples with a line
+// for errors catched by r. If any, it returns a slice of structs with a line
 // and a name of every catched symbol.
 func getSymbolsInfoFromBuildErrors(code []byte, r *regexp.Regexp) ([]SymbolInfo, error) {
 	td, err := os.MkdirTemp(os.TempDir(), "gouse")
