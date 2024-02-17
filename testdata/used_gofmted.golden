@@ -1,5 +1,6 @@
 package p
 
+// Tests if it removes fake usages after gofmt.
 func main() {
 	var (
 		notUsed0 = false

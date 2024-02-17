@@ -1,0 +1,10 @@
+package p
+
+// Tests if it removes fake usages of variables with different name lengths
+// after gofmt. gofmt may align comments from neighbouring lines which creates
+// additional spaces between end of fake usage and TODO comment.
+func main() {
+	notUsed, notUsed0 := "", ""
+	_ = notUsed  /* TODO: gouse */
+	_ = notUsed0 /* TODO: gouse */
+}

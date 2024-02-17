@@ -2,11 +2,7 @@ package p
 
 import "testing" // Any non-existent dependency works.
 
+// Tests if it differentiates between an unused import and variable.
 func main() {
-	var (
-		notUsed0 = false; _ = notUsed0 /* TODO: gouse */
-		used0    bool
-	)
-	notUsed1, used1 := "", ""; _ = notUsed1 /* TODO: gouse */
-	_, _ = used0, used1
+	notUsed0 := ""; _ = notUsed0 /* TODO: gouse */
 }

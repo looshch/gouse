@@ -1,5 +1,7 @@
 package p
 
+// Tests if variables with fake usages get removed. Checks both a case with a
+// single definition per line and one with multiple assignments per line.
 func main() {
 	var (
 		notUsed0 = false; _ = notUsed0 /* TODO: gouse */

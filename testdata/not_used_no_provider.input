@@ -2,11 +2,7 @@ package p
 
 import "github.com/gorilla/mux" // Any non-existent third party dependency works.
 
+// Tests if an import of an unused dependency breaks gouse.
 func main() {
-	var (
-		notUsed0 = false
-		used0    bool
-	)
-	notUsed1, used1 := "", ""
-	_, _ = used0, used1
+	notUsed0 := ""
 }

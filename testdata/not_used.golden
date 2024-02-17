@@ -1,5 +1,8 @@
 package p
 
+// Tests if unused variables get fake usages and if every second processing of
+// the same file returns it to its exact initial state. Checks both a case with
+// a single definition per line and one with multiple assignments per line.
 func main() {
 	var (
 		notUsed0 = false; _ = notUsed0 /* TODO: gouse */
