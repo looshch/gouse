@@ -11,15 +11,6 @@ import (
 	"strings"
 )
 
-// file represents *os.File and is used wherever *os.File is used.
-type file interface {
-	Read(b []byte) (int, error)
-	Write(b []byte) (int, error)
-	Seek(offset int64, whence int) (int64, error)
-	Truncate(size int64) error
-	Close() error
-}
-
 const commentPrefix = "// "
 
 const (

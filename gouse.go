@@ -52,10 +52,9 @@ import (
 )
 
 const (
-	currentVersion = "1.2.0"
-	logFlag        = 0
 	errorLogPrefix = "error: "
-	usageText      = "usage: gouse [-w] [file paths...]"
+	logFlag        = 0
+	currentVersion = "1.2.1"
 )
 
 var (
