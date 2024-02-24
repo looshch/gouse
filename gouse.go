@@ -54,7 +54,7 @@ import (
 const (
 	errorLogPrefix = "error: "
 	logFlag        = 0
-	currentVersion = "1.2.1"
+	currentVersion = "1.2.2"
 )
 
 var (
@@ -92,7 +92,7 @@ func run(
 		infoLog.Print(msg)
 		return 2
 	} else if err != nil {
-		errorLog.Print(fmt.Errorf("run: %s\n%s", err, msg))
+		errorLog.Print(fmt.Errorf("run: in parseArgs: %s\n%s", err, msg))
 		return 1
 	}
 

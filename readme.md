@@ -3,7 +3,7 @@ Toggle ‘declared and not used’ errors in Go by using idiomatic `_ = notUsedV
 and leaving a TODO comment. ![a demo](demo.gif)
 
 ## Installation
-```
+```sh
 go install github.com/looshch/gouse@latest
 ```
 
@@ -14,7 +14,7 @@ back to the file. If multiple paths provided, ‘-w’ flag is required.
 
 
 ### Examples
-```
+```sh
 $ gouse
 ...input...
 notUsed = true
@@ -24,13 +24,13 @@ notUsed = true
 notUsed = true; _ = notUsed /* TODO: gouse */
 ...output...
 ```
-```
+```sh
 $ gouse main.go
 ...
 notUsed = true; _ = notUsed /* TODO: gouse */
 ...
 ```
-```
+```sh
 $ gouse -w main.go io.go core.go
 $ cat main.go io.go core.go
 ...
