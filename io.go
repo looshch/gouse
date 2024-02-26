@@ -23,8 +23,7 @@ type osOpenFile func(name string, flag int, perm os.FileMode) (file, error)
 
 // openFile is a wrapper around os.OpenFile.
 var openFile osOpenFile = func(name string, flag int, perm os.FileMode) (file, error) {
-	file, err := os.OpenFile(name, flag, perm)
-	return file, err
+	return os.OpenFile(name, flag, perm)
 }
 
 // config represents parsed CLI arguments.
