@@ -49,7 +49,7 @@ and not used’ errors. If there is any, it creates fake usages for unused
 variables from the errors.
 
 ## Integrations
-* Vim: just bind `<cmd> w <bar> !gouse -w %<cr><cr>` to some mapping.
+* Vim: just bind `<cmd> w <bar> silent !gouse -w %<cr>` to some mapping.
 * [Visual Studio Code
   plugin](https://marketplace.visualstudio.com/items?itemName=looshch.gouse).
 
