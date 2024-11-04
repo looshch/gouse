@@ -54,12 +54,16 @@ import (
 const (
 	errorLogPrefix = "error: "
 	logFlag        = 0
-	currentVersion = "1.2.3"
+	currentVersion = "1.3.0"
 )
 
 var (
-	errCannotWriteToStdin = errors.New("cannot use ‘-w’ flag with standard input")
-	errMustWriteToFiles   = errors.New("must use ‘-w’ flag with more than one path")
+	errCannotWriteToStdin = errors.New(
+		"cannot use ‘-w’ flag with standard input",
+	)
+	errMustWriteToFiles   = errors.New(
+		"must use ‘-w’ flag with more than one path",
+	)
 )
 
 func main() {
@@ -92,7 +96,9 @@ func run(
 		infoLog.Print(msg)
 		return 2
 	} else if err != nil {
-		errorLog.Print(fmt.Errorf("run: in parseArgs: %s\n%s", err, msg))
+		errorLog.Print(
+			fmt.Errorf("run: in parseArgs: %s\n%s", err, msg),
+		)
 		return 1
 	}
 

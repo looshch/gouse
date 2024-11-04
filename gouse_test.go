@@ -56,7 +56,9 @@ func (f *fakeFile) Close() error {
 
 func TestRun(t *testing.T) {
 	input, err := os.ReadFile(filepath.Join("testdata", "not_used.input"))
-	var openInput osOpenFile = func(name string, flag int, perm os.FileMode) (file, error) {
+	var openInput osOpenFile = func(
+		name string, flag int, perm os.FileMode,
+	) (file, error) {
 		return newFakeFile(input...), nil
 	}
 	if err != nil {
@@ -80,13 +82,17 @@ func TestRun(t *testing.T) {
 			wantStatus: 2,
 		},
 		{
-			args:       []string{"-w"},
-			wantOutput: errorLogPrefix + errCannotWriteToStdin.Error() + "\n",
+			args: []string{"-w"},
+			wantOutput: errorLogPrefix +
+				errCannotWriteToStdin.Error() +
+				"\n",
 			wantStatus: 1,
 		},
 		{
-			args:       []string{mockPath, mockPath},
-			wantOutput: errorLogPrefix + errMustWriteToFiles.Error() + "\n",
+			args: []string{mockPath, mockPath},
+			wantOutput: errorLogPrefix +
+				errMustWriteToFiles.Error() +
+				"\n",
 			wantStatus: 1,
 		},
 		{
@@ -100,7 +106,8 @@ func TestRun(t *testing.T) {
 			wantStatus:   0,
 		},
 		{
-			// Double processing of the same file must return to exact previous state.
+			// Double processing of the same file must return to
+			// exact previous state.
 			args:         []string{"-w", mockPath, mockPath},
 			wantFilename: "not_used.input",
 			wantStatus:   0,
@@ -124,7 +131,9 @@ func TestRun(t *testing.T) {
 			ctx := context.Background()
 			ctx, cancel := context.WithCancel(ctx)
 			t.Cleanup(cancel)
-			status := run(ctx, args, stdin, stdout, stderr, openInput)
+			status := run(
+				ctx, args, stdin, stdout, stderr, openInput,
+			)
 			got, err := io.ReadAll(stdout)
 			if err != nil {
 				t.Fatal(err)
@@ -140,14 +149,22 @@ func TestRun(t *testing.T) {
 				}
 				got = append(got, gotFromStderr...)
 				if len(wantOutput) > 0 {
-					if bytes.Equal(got, []byte(wantOutput)) {
+					if bytes.Equal(
+						got, []byte(wantOutput),
+					) {
 						return
 					} else {
-						t.Errorf(filesCmpErr, got, wantOutput)
+						t.Errorf(
+							filesCmpErr,
+							got,
+							wantOutput,
+						)
 					}
 				}
 			}
-			want, err := os.ReadFile(filepath.Join("testdata", test.wantFilename))
+			want, err := os.ReadFile(
+				filepath.Join("testdata", test.wantFilename),
+			)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -155,7 +172,11 @@ func TestRun(t *testing.T) {
 				t.Errorf(filesCmpErr, got, want)
 			}
 			if test.wantStatus != status {
-				t.Errorf("got: %d, want: %d", status, test.wantStatus)
+				t.Errorf(
+					"got: %d, want: %d",
+					status,
+					test.wantStatus,
+				)
 			}
 		})
 	}

@@ -30,7 +30,9 @@ func TestToggle(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			want, err := os.ReadFile(filepath.Join("testdata", testName+".golden"))
+			want, err := os.ReadFile(
+				filepath.Join("testdata", testName+".golden"),
+			)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -41,6 +43,18 @@ func TestToggle(t *testing.T) {
 	}
 }
 
+const getSymbolsInfoFromBuildErrorsInput = `
+	package p
+
+	func main() {
+	var (
+		notUsed0 = false
+		used0    bool
+	)
+	notUsed1, used1 := "", "", "" // more values than variables
+	_, _ = used0, used1 // no closing brace
+`
+
 func TestGetSymbolsInfoFromBuildErrors(t *testing.T) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -48,30 +62,32 @@ func TestGetSymbolsInfoFromBuildErrors(t *testing.T) {
 	t.Run("ignore other errors", func(t *testing.T) {
 		t.Parallel()
 		input := []byte(
-			`package p
-
-		         func main() {
-		         var (
-		         	notUsed0 = false
-		         	used0    bool
-		         )
-		         notUsed1, used1 := "", "", "" // more values than variables
-		         _, _ = used0, used1 // no closing brace`,
+			getSymbolsInfoFromBuildErrorsInput,
 		)
 		want := []symbolInfo{
 			{"notUsed0", 5},
 			{"notUsed1", 8},
 		}
-		got, err := getSymbolsInfoFromBuildErrors(ctx, input, notUsedError)
+		got, err := getSymbolsInfoFromBuildErrors(
+			ctx, input, notUsedErrorRegexpSuffix,
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
 		for i, info := range got {
 			if info.name != want[i].name {
-				t.Errorf("got: %s, want: %s", info.name, want[i].name)
+				t.Errorf(
+					"got: %s, want: %s",
+					info.name,
+					want[i].name,
+				)
 			}
 			if info.lineNum != want[i].lineNum {
-				t.Errorf("got: %d, want: %d", info.lineNum, want[i].lineNum)
+				t.Errorf(
+					"got: %d, want: %d",
+					info.lineNum,
+					want[i].lineNum,
+				)
 			}
 		}
 	})

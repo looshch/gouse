@@ -17,7 +17,11 @@ func TestParseArgs(t *testing.T) {
 	}{
 		{
 			args: []string{"-v"},
-			conf: config{version: true, write: false, paths: []string{}},
+			conf: config{
+				version: true,
+				write:   false,
+				paths:   []string{},
+			},
 		},
 		{
 			args:   []string{"-h"},
@@ -39,11 +43,19 @@ func TestParseArgs(t *testing.T) {
 		},
 		{
 			args: []string{"-w"},
-			conf: config{version: false, write: true, paths: []string{}},
+			conf: config{
+				version: false,
+				write:   true,
+				paths:   []string{},
+			},
 		},
 		{
 			args: []string{"path1", "path2"},
-			conf: config{version: false, write: false, paths: []string{"path1", "path2"}},
+			conf: config{
+				version: false,
+				write:   false,
+				paths:   []string{"path1", "path2"},
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -60,22 +72,39 @@ func TestParseArgs(t *testing.T) {
 			}
 			if test.output != "" {
 				if output != test.output {
-					t.Errorf("got: %s, want: %s", output, test.output)
+					t.Errorf(
+						"got: %s, want: %s",
+						output,
+						test.output,
+					)
 				}
 				return
 			}
 
 			wantConf := test.conf
 			if (*conf).version != wantConf.version {
-				t.Errorf("got: %t, want: %t", conf.version, wantConf.version)
+				t.Errorf(
+					"got: %t, want: %t",
+					conf.version,
+					wantConf.version,
+				)
 			}
 			if conf.write != wantConf.write {
-				t.Errorf("got: %t, want: %t", conf.write, wantConf.write)
+				t.Errorf(
+					"got: %t, want: %t",
+					conf.write,
+					wantConf.write,
+				)
 			}
 			bpaths := []byte(strings.Join(conf.paths, ""))
-			wantConfBPaths := []byte(strings.Join(wantConf.paths, ""))
+			wantConfBPaths := []byte(
+				strings.Join(wantConf.paths, ""),
+			)
 			if !bytes.Equal(bpaths, wantConfBPaths) {
-				t.Errorf("got: %v, want: %v", bpaths, wantConfBPaths)
+				t.Errorf(
+					"got: %v, want: %v",
+					bpaths,
+					wantConfBPaths)
 			}
 		})
 	}

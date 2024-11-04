@@ -22,7 +22,9 @@ type file interface {
 type osOpenFile func(name string, flag int, perm os.FileMode) (file, error)
 
 // openFile is a wrapper around os.OpenFile.
-var openFile osOpenFile = func(name string, flag int, perm os.FileMode) (file, error) {
+var openFile osOpenFile = func(
+	name string, flag int, perm os.FileMode,
+) (file, error) {
 	return os.OpenFile(name, flag, perm)
 }
 
@@ -54,8 +56,8 @@ func parseArgs(args []string) (*config, string, error) {
 	return c, out.String(), nil
 }
 
-// toggleFile takes code from in, toggles it, deletes contents of out if it’s in,
-// and writes the toggled version to out.
+// toggleFile takes code from in, toggles it, deletes contents of out if it’s
+// in, and writes the toggled version to out.
 func toggleFile(ctx context.Context, in, out file) error {
 	code, err := io.ReadAll(in)
 	if err != nil {
@@ -70,7 +72,9 @@ func toggleFile(ctx context.Context, in, out file) error {
 			return fmt.Errorf("toggleFile: in *File.Seek: %v", err)
 		}
 		if err := out.Truncate(0); err != nil {
-			return fmt.Errorf("toggleFile: in *File.Truncate: %v", err)
+			return fmt.Errorf(
+				"toggleFile: in *File.Truncate: %v", err,
+			)
 		}
 	}
 	if _, err := out.Write(toggled); err != nil {
