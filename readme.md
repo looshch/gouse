@@ -9,12 +9,6 @@ and leaving a TODO comment. ![a demo](demo.gif)
 go install github.com/looshch/gouse@latest
 ```
 
-## Usage
-
-By default, `gouse` accepts code from stdin or from a file provided as a path
-argument and writes the toggled version to stdout. ‘-w’ flag writes the result
-back to the file. If multiple paths provided, ‘-w’ flag is required.
-
 <!-- prettier-ignore -->
 > [!CAUTION]
 >
@@ -24,6 +18,12 @@ back to the file. If multiple paths provided, ‘-w’ flag is required.
 > | -------------|---------------|
 > | 1.21.0+      | 1.3.0+        |
 > | 1.18–1.20.14 | 1.2.3         |
+
+## Usage
+
+By default, `gouse` accepts code from stdin or from a file provided as a path
+argument and writes the toggled version to stdout. ‘-w’ flag writes the result
+back to the file. If multiple paths provided, ‘-w’ flag is required.
 
 ### Examples
 
