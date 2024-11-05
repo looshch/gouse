@@ -35,7 +35,7 @@ type config struct {
 	paths   []string
 }
 
-const usageText = "usage: gouse [-w] [file paths...]"
+const usageText = "usage: gouse [-v] [-w] [file paths...]"
 
 // parseArgs accepts args, parses them and returns config, parsing message and
 // err. flag.ErrHelp is a special error which is returned on -h, -help, --help
