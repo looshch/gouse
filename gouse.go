@@ -3,7 +3,7 @@
 //
 // Usage:
 //
-//	gouse [-w] [file paths...]
+//	gouse [-v] [-w] [file paths...]
 //
 // By default, gouse accepts code from stdin or from a file provided as a path
 // argument and writes the toggled version to stdout. ‘-w’ flag writes the
@@ -61,7 +61,7 @@ var (
 	errCannotWriteToStdin = errors.New(
 		"cannot use ‘-w’ flag with standard input",
 	)
-	errMustWriteToFiles   = errors.New(
+	errMustWriteToFiles = errors.New(
 		"must use ‘-w’ flag with more than one path",
 	)
 )
